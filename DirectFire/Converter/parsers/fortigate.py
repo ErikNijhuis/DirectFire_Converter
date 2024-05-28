@@ -117,7 +117,7 @@ def parse(src_config, routing_info=""):
                 data["network_objects"][network_object_name]["type"] = "fqdn"
 
                 re_match = re.search(
-                    'set fqdn "?(' + common.common_regex.fqdn + ')"?\n', network_object
+                    'set fqdn "?(' + common.common_regex.fqdn + ')"?\n', network_object, re.DOTALL
                 )
 
                 data["network_objects"][network_object_name]["fqdn"] = re_match.group(1)
