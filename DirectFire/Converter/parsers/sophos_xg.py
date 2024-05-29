@@ -3,7 +3,6 @@
 # Import modules
 
 import logging
-from mimetypes import add_type
 import sys
 import xml.etree.ElementTree as ET
 
@@ -100,6 +99,35 @@ def parse(src_config, routing_info=""):
     src_addr = src_config_xml.findall("./IPHost")
     src_fqdn = src_config_xml.findall("./FQDNHost")
 
+    for addr in src_addr:
+
+        addr_type = addr.find("HostType").text
+        addr_ver = addr.find("IPFamily").text
+
+        if addr_type == "IP" and addr_ver == "IPv4":
+            addr_host = addr.find("IPAddress").text
+            addr_name = addr.find("Name").text
+
+            data["network_objects"][addr_name] = {}
+            data["network_objects"][addr_name]["type"] = "host"
+            data["network_objects"][addr_name]["host"] = addr_host
+            data["network_objects"][addr_name]["description"] = ""
+            data["network_objects"][addr_name]["interface"] = ""
+
+        elif addr_type == "Network" and addr_ver == "IPv4":
+            addr_network = addr.find("IPAddress").text
+            addr_mask = addr.find("Subnet").text
+            addr_name = addr.find("Name").text
+
+            data["network_objects"][addr_name] = {}
+            data["network_objects"][addr_name]["type"] = "network"
+            data["network_objects"][addr_name]["network"] = addr_network
+            data["network_objects"][addr_name]["mask"] = addr_mask
+            data["network_objects"][addr_name]["description"] = ""
+            data["network_objects"][addr_name]["interface"] = ""
+
+    # for fqdn in src_fqdn:
+
     # Parse IPv6 network objects
 
     logger.info(__name__ + ": parse IPv6 network objects - not yet supported")
@@ -131,7 +159,7 @@ def parse(src_config, routing_info=""):
 
     # Parse service groups
 
-    logger.info(__name__ + ": parse service groups")
+    logger.info(__name__ + ": parse service groups - work in progress")
 
     src_svc_grp = src_config_xml.findall("./ServiceGroup")
 
