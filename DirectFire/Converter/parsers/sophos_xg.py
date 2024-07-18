@@ -67,6 +67,7 @@ def parse(src_config, routing_info=""):
     src_system = src_config_xml.find("AdminSettings").find("HostnameSettings")
     data["system"]["hostname"] = src_system.find("HostName").text
     logger.info(__name__ + ": system: hostname is " + data["system"]["hostname"])
+    # Todo: separate host and domain parts from source FQDN
 
     # Parse interfaces
 
@@ -103,6 +104,7 @@ def parse(src_config, routing_info=""):
 
         addr_type = addr.find("HostType").text
         addr_ver = addr.find("IPFamily").text
+        # Todo: sanitize chars: ()#
 
         if addr_type == "IP" and addr_ver == "IPv4":
             addr_host = addr.find("IPAddress").text
@@ -126,7 +128,16 @@ def parse(src_config, routing_info=""):
             data["network_objects"][addr_name]["description"] = ""
             data["network_objects"][addr_name]["interface"] = ""
 
-    # for fqdn in src_fqdn:
+    for fqdn in src_fqdn:
+
+        fqdn_name = fqdn.find("Name").text
+        fqdn_value = fqdn.find("FQDN").text
+
+        data["network_objects"][fqdn_name] = {}
+        data["network_objects"][fqdn_name]["type"] = "fqdn"
+        data["network_objects"][fqdn_name]["fqdn"] = fqdn_value
+        data["network_objects"][fqdn_name]["description"] = ""
+        data["network_objects"][fqdn_name]["interface"] = ""
 
     # Parse IPv6 network objects
 
