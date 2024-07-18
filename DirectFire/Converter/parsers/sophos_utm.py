@@ -14,6 +14,7 @@ import DirectFire.Converter.settings as settings
 # Initialise common functions
 
 cleanse_names = common.cleanse_names
+ipv4_prefix_to_mask = common.ipv4_prefix_to_mask
 
 # Initiate logging
 
@@ -63,8 +64,8 @@ def parse(src_config, routing_info=""):
 
     logger.info(__name__ + ": parse system")
 
-    src_system = src_config_xml.find("./AdminSettings/HostnameSettings")
-    data["system"]["hostname"] = src_system.find("HostName").text
+    src_system = src_config_xml.find("./nodes/management/content/settings/content/hostname")
+    data["system"]["hostname"] = src_system.find("content").text
     logger.info(__name__ + ": system: hostname is " + data["system"]["hostname"])
     # Todo: separate host and domain parts from source FQDN
 
@@ -96,47 +97,44 @@ def parse(src_config, routing_info=""):
 
     logger.info(__name__ + ": parse IPv4 network objects - work in progress")
 
-    src_addr = src_config_xml.findall("./IPHost")
-    src_fqdn = src_config_xml.findall("./FQDNHost")
+    src_network_root = src_config_xml.find("./objects/network/content")
 
-    for addr in src_addr:
+    src_host = src_network_root.find("./host/content")
 
-        addr_type = addr.find("HostType").text
-        addr_ver = addr.find("IPFamily").text
+    for addr in src_host:
+        addr_name = addr.find("./content/name/content").text
         # Todo: sanitize chars: ()#
 
-        if addr_type == "IP" and addr_ver == "IPv4":
-            addr_host = addr.find("IPAddress").text
-            addr_name = addr.find("Name").text
+        data["network_objects"][addr_name] = {}
+        data["network_objects"][addr_name]["type"] = "host"
+        data["network_objects"][addr_name]["host"] = addr.find("./content/address/content").text
+        data["network_objects"][addr_name]["description"] = addr.find("./content/comment/content").text
+        data["network_objects"][addr_name]["interface"] = "" # Todo get name from REF addr.find("./content/interface/content").text
 
-            data["network_objects"][addr_name] = {}
-            data["network_objects"][addr_name]["type"] = "host"
-            data["network_objects"][addr_name]["host"] = addr_host
-            data["network_objects"][addr_name]["description"] = ""
-            data["network_objects"][addr_name]["interface"] = ""
+    src_network = src_network_root.find("./network/content")
 
-        elif addr_type == "Network" and addr_ver == "IPv4":
-            addr_network = addr.find("IPAddress").text
-            addr_mask = addr.find("Subnet").text
-            addr_name = addr.find("Name").text
+    for addr in src_network:
+        addr_name = addr.find("./content/name/content").text
+        # Todo: sanitize chars: ()#
 
-            data["network_objects"][addr_name] = {}
-            data["network_objects"][addr_name]["type"] = "network"
-            data["network_objects"][addr_name]["network"] = addr_network
-            data["network_objects"][addr_name]["mask"] = addr_mask
-            data["network_objects"][addr_name]["description"] = ""
-            data["network_objects"][addr_name]["interface"] = ""
+        data["network_objects"][addr_name] = {}
+        data["network_objects"][addr_name]["type"] = "network"
+        data["network_objects"][addr_name]["network"] = addr.find("./content/address/content").text
+        data["network_objects"][addr_name]["mask"] = ipv4_prefix_to_mask("/" + addr.find("./content/netmask/content").text)
+        data["network_objects"][addr_name]["description"] = addr.find("./content/comment/content").text
+        data["network_objects"][addr_name]["interface"] = "" # Todo get name from REF addr.find("./content/interface/content").text
+
+    src_fqdn = src_network_root.find("./dns_host/content")
 
     for fqdn in src_fqdn:
-
-        fqdn_name = fqdn.find("Name").text
-        fqdn_value = fqdn.find("FQDN").text
+        fqdn_name = fqdn.find("./content/name/content").text
+        # Todo: sanitize chars: ()#
 
         data["network_objects"][fqdn_name] = {}
         data["network_objects"][fqdn_name]["type"] = "fqdn"
-        data["network_objects"][fqdn_name]["fqdn"] = fqdn_value
-        data["network_objects"][fqdn_name]["description"] = ""
-        data["network_objects"][fqdn_name]["interface"] = ""
+        data["network_objects"][fqdn_name]["fqdn"] = fqdn.find("./content/hostname/content").text
+        data["network_objects"][fqdn_name]["description"] = fqdn.find("./content/comment/content").text
+        data["network_objects"][fqdn_name]["interface"] = "" # Todo get name from REF addr.find("./content/interface/content").text
 
     # Parse IPv6 network objects
 
@@ -149,9 +147,6 @@ def parse(src_config, routing_info=""):
     # Parse IPv4 network groups
 
     logger.info(__name__ + ": parse IPv4 network groups - work in progress")
-
-    src_addr_grp = src_config_xml.findall("./IPHostGroup")
-    src_fqdn_grp = src_config_xml.findall("./FQDNHostGroup")
 
     # Parse IPv6 network groups
 

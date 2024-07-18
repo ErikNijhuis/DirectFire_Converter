@@ -58,7 +58,8 @@ arg_parser.add_argument(
         "junipersrx",
         "netscreen",
         "watchguard",
-        "sophos_xg"
+        "sophos_xg",
+        "sophos_utm"
     ],
     help="source format",
     required=True,
@@ -124,6 +125,8 @@ def parse(src_format, src_config, routing_info=""):
         from DirectFire.Converter.parsers.watchguard import parse
     elif src_format == "sophos_xg":  ## Sophos XG
         from DirectFire.Converter.parsers.sophos_xg import parse
+    elif src_format == "sophos_utm":  ## Sophos UTM
+        from DirectFire.Converter.parsers.sophos_utm import parse
     else:
         logger.info(
             "DirectFire.Converter.parse: failed to load parser module for " + src_format
