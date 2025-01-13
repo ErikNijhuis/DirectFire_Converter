@@ -102,8 +102,7 @@ def parse(src_config, routing_info=""):
     src_host = src_network_root.find("./host/content")
 
     for addr in src_host:
-        addr_name = addr.find("./content/name/content").text
-        # Todo: sanitize chars: ()#
+        addr_name = cleanse_names(addr.find("./content/name/content").text)
 
         data["network_objects"][addr_name] = {}
         data["network_objects"][addr_name]["type"] = "host"
@@ -114,8 +113,7 @@ def parse(src_config, routing_info=""):
     src_network = src_network_root.find("./network/content")
 
     for addr in src_network:
-        addr_name = addr.find("./content/name/content").text
-        # Todo: sanitize chars: ()#
+        addr_name = cleanse_names(addr.find("./content/name/content").text)
 
         data["network_objects"][addr_name] = {}
         data["network_objects"][addr_name]["type"] = "network"
@@ -127,8 +125,7 @@ def parse(src_config, routing_info=""):
     src_fqdn = src_network_root.find("./dns_host/content")
 
     for fqdn in src_fqdn:
-        fqdn_name = fqdn.find("./content/name/content").text
-        # Todo: sanitize chars: ()#
+        fqdn_name = cleanse_names(fqdn.find("./content/name/content").text)
 
         data["network_objects"][fqdn_name] = {}
         data["network_objects"][fqdn_name]["type"] = "fqdn"
@@ -160,13 +157,34 @@ def parse(src_config, routing_info=""):
 
     logger.info(__name__ + ": parse service objects - work in progress")
 
-    src_svc = src_config_xml.findall("./Services")
+    src_service_root = src_config_xml.find("./objects/service/content")
+
+    src_tcp = src_service_root.find("./tcp/content")
+
+    for tcp in src_tcp:
+        tcp_name = cleanse_names(tcp.find("./content/name/content").text)
+        src_low = tcp.find("./content/src_low/content").text
+        src_high = tcp.find("./content/src_high/content").text
+        dst_low = tcp.find("./content/dst_low/content").text
+        dst_high = tcp.find("./content/dst_high/content").text
+        comment = tcp.find("./content/comment/content").text
+
+        src_ports = src_low if src_high is None or src_high == src_low else f"{src_low}-{src_high}"
+        dst_ports = dst_low if dst_high is None or dst_high == dst_low else f"{dst_low}-{dst_high}"
+
+        data["service_objects"][tcp_name] = {
+            "type": "service",
+            "protocol": "6",
+            "src_port": src_ports,
+            "dst_port": dst_ports,
+            "description": comment,
+        }
 
     # Parse service groups
 
     logger.info(__name__ + ": parse service groups - work in progress")
 
-    src_svc_grp = src_config_xml.findall("./ServiceGroup")
+    #src_svc_grp = src_config_xml.findall("./ServiceGroup")
 
     # Parse firewall policies
 

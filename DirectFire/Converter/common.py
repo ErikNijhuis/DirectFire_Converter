@@ -15,8 +15,11 @@ def cleanse_names(name):
     name = name.replace(" ", "_")
     name = name.replace("/", "_")
     name = name.replace(".", "_")
+    name = name.replace("#", "hash_") #FortiGate
+    name = name.replace("(", "{") #FortiGate
+    name = name.replace(")", "}") #FortiGate
     name = unidecode.unidecode(name)
-    valid_chars = re.compile(r"[^A-Za-z0-9!@#$%^&()-_{}]")
+    valid_chars = re.compile(r"[^A-Za-z0-9!@$%^&-_{}]")
     name = valid_chars.sub("", name)
 
     return name
