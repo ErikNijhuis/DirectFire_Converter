@@ -168,7 +168,7 @@ def parse(src_config, routing_info=""):
     # Parse IPv6 network objects
 
     logger.info(__name__ + ": parse IPv6 network objects - not yet supported")
-    
+
     """
     Parse IPv6 network objects
     """
@@ -187,7 +187,6 @@ def parse(src_config, routing_info=""):
         members = []
         for member in group.findall("./content/members/content"):
             member_ref = member.text
-            logger.debug(__name__ + ": parsing group: " + group_name + " -> member ref:" + member_ref)
             # Find the referenced object and get its name
             ref_object = src_network_root.find(f".//{member_ref}[@object='1']")
             if ref_object is not None:
@@ -325,7 +324,6 @@ def parse(src_config, routing_info=""):
         members = []
         for member in group.findall("./content/members/content"):
             member_ref = member.text
-            logger.debug(__name__ + ": parsing service group: " + group_name + " -> member ref:" + member_ref)
             # Find the referenced object and get its name
             ref_object = src_service_root.find(f".//{member_ref}[@object='1']")
             if ref_object is not None:

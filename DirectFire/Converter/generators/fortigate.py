@@ -234,6 +234,11 @@ def generate(parsed_data):
                     cfglvl2 + "set associated-interface " + attributes["interface"]
                 )
 
+        if "description" in attributes and attributes["description"]:
+            dst_config.append(
+                cfglvl2 + "set comment \"" + attributes["description"] + "\""
+            )
+
         dst_config.append(cfglvl1 + "next")
 
     dst_config.append("end")
@@ -266,6 +271,11 @@ def generate(parsed_data):
 
             if grp_members:
                 dst_config.append(cfglvl2 + "set member" + grp_members)
+            
+            if "description" in attributes and attributes["description"]:
+                dst_config.append(
+                    cfglvl2 + "set comment \"" + attributes["description"] + "\""
+                )
 
             dst_config.append(cfglvl1 + "next")
 
@@ -332,6 +342,10 @@ def generate(parsed_data):
                 dst_config.append(
                     cfglvl2 + "set protocol-number " + attributes["protocol"]
                 )
+            if "description" in attributes and attributes["description"]:
+                dst_config.append(
+                    cfglvl2 + "set comment \"" + attributes["description"] + "\""
+                )
 
         elif attributes["type"] == "range":
 
@@ -355,6 +369,11 @@ def generate(parsed_data):
                     + attributes["dst_port_first"]
                     + "-"
                     + attributes["dst_port_last"]
+                )
+
+            if "description" in attributes and attributes["description"]:
+                dst_config.append(
+                    cfglvl2 + "set comment \"" + attributes["description"] + "\""
                 )
 
         elif attributes["type"] == "v2":
@@ -430,6 +449,11 @@ def generate(parsed_data):
                             dst_config.append(cfglvl2 + "set protocol IP")
                             dst_config.append(cfglvl2 + "set protocol-number " + proto)
 
+            if "description" in attributes and attributes["description"]:
+                dst_config.append(
+                    cfglvl2 + "set comment \"" + attributes["description"] + "\""
+                )
+
         dst_config.append(cfglvl1 + "next")
 
     dst_config.append("end")
@@ -462,6 +486,11 @@ def generate(parsed_data):
 
             if grp_members:
                 dst_config.append(cfglvl2 + "set member" + grp_members)
+
+            if "description" in attributes and attributes["description"]:
+                dst_config.append(
+                    cfglvl2 + "set comment \"" + attributes["description"] + "\""
+                )
 
             dst_config.append(cfglvl1 + "next")
 
