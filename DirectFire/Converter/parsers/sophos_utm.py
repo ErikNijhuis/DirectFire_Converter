@@ -173,18 +173,93 @@ def parse(src_config, routing_info=""):
         dst_ports = dst_low if dst_high is None or dst_high == dst_low else f"{dst_low}-{dst_high}"
 
         data["service_objects"][tcp_name] = {
-            "type": "service",
-            "protocol": "6",
-            "src_port": src_ports,
-            "dst_port": dst_ports,
+            "type": "v2",
+            "protocols": ["6"],
+            "src_ports": [src_ports],
+            "dst_ports": [dst_ports],
             "description": comment,
         }
+
+    src_udp = src_service_root.find("./udp/content")
+
+    for udp in src_udp:
+        udp_name = cleanse_names(udp.find("./content/name/content").text)
+        src_low = udp.find("./content/src_low/content").text
+        src_high = udp.find("./content/src_high/content").text
+        dst_low = udp.find("./content/dst_low/content").text
+        dst_high = udp.find("./content/dst_high/content").text
+        comment = udp.find("./content/comment/content").text
+
+        src_ports = src_low if src_high is None or src_high == src_low else f"{src_low}-{src_high}"
+        dst_ports = dst_low if dst_high is None or dst_high == dst_low else f"{dst_low}-{dst_high}"
+
+        data["service_objects"][udp_name] = {
+            "type": "v2",
+            "protocols": ["17"],
+            "src_ports": [src_ports],
+            "dst_ports": [dst_ports],
+            "description": comment,
+        }
+    
+    src_tcpudp = src_service_root.find("./tcpudp/content")
+
+    for tcpudp in src_tcpudp:
+        tcpudp_name = cleanse_names(tcpudp.find("./content/name/content").text)
+        src_low = tcpudp.find("./content/src_low/content").text
+        src_high = tcpudp.find("./content/src_high/content").text
+        dst_low = tcpudp.find("./content/dst_low/content").text
+        dst_high = tcpudp.find("./content/dst_high/content").text
+        comment = tcpudp.find("./content/comment/content").text
+
+        src_ports = src_low if src_high is None or src_high == src_low else f"{src_low}-{src_high}"
+        dst_ports = dst_low if dst_high is None or dst_high == dst_low else f"{dst_low}-{dst_high}"
+
+        data["service_objects"][tcpudp_name] = {
+            "type": "v2",
+            "protocols": ["6", "17"],
+            "src_ports": [src_ports],
+            "dst_ports": [dst_ports],
+            "description": comment,
+        }
+
+    src_icmp = src_service_root.find("./icmp/content")
+
+    for icmp in src_icmp:
+        icmp_name = cleanse_names(icmp.find("./content/name/content").text)
+        icmp_type = icmp.find("./content/type/content").text
+        icmp_code = icmp.find("./content/code/content").text
+        comment = icmp.find("./content/comment/content").text
+
+        data["service_objects"][icmp_name] = {
+            "type": "v2",
+            "protocols": ["1"],
+            "icmp_type": icmp_type,
+            "icmp_code": icmp_code,
+            "description": comment,
+            "dst_ports": [""],
+        }
+
+    src_ip = src_service_root.find("./ip/content")
+
+    for ip in src_ip:
+        ip_name = cleanse_names(ip.find("./content/name/content").text)
+        proto = ip.find("./content/proto/content").text
+        comment = ip.find("./content/comment/content").text
+
+        data["service_objects"][ip_name] = {
+            "type": "v2",      
+            "protocols": [proto],
+            "description": comment,
+            "dst_ports": [""],
+        }
+
+    # Not supported: icmpv6, esp, ah
 
     # Parse service groups
 
     logger.info(__name__ + ": parse service groups - work in progress")
 
-    #src_svc_grp = src_config_xml.findall("./ServiceGroup")
+    # src_servicegroup_root = src_config_xml.find("./objects/service/content/group/content")
 
     # Parse firewall policies
 
