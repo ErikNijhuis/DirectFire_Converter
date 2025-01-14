@@ -123,8 +123,10 @@ def parse(src_format, src_config, routing_info=""):
 
     elif src_format == "watchguard":  ## WatchGuard
         from DirectFire.Converter.parsers.watchguard import parse
+
     elif src_format == "sophos_xg":  ## Sophos XG
         from DirectFire.Converter.parsers.sophos_xg import parse
+
     elif src_format == "sophos_utm":  ## Sophos UTM
         from DirectFire.Converter.parsers.sophos_utm import parse
     else:

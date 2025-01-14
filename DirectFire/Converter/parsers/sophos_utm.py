@@ -110,6 +110,16 @@ def parse(src_config, routing_info=""):
         data["network_objects"][addr_name]["description"] = addr.find("./content/comment/content").text
         data["network_objects"][addr_name]["interface"] = "" # Todo get name from REF addr.find("./content/interface/content").text
 
+    src_interface_address = src_network_root.find("./interface_address/content")
+
+    for addr in src_interface_address:
+        addr_name = cleanse_names(addr.find("./content/name/content").text)
+
+        data["network_objects"][addr_name] = {}
+        data["network_objects"][addr_name]["type"] = "host"
+        data["network_objects"][addr_name]["host"] = addr.find("./content/address/content").text
+        data["network_objects"][addr_name]["description"] = addr.find("./content/comment/content").text
+
     src_network = src_network_root.find("./network/content")
 
     for addr in src_network:
@@ -122,6 +132,17 @@ def parse(src_config, routing_info=""):
         data["network_objects"][addr_name]["description"] = addr.find("./content/comment/content").text
         data["network_objects"][addr_name]["interface"] = "" # Todo get name from REF addr.find("./content/interface/content").text
 
+    src_interface_network = src_network_root.find("./interface_network/content")
+
+    for addr in src_interface_network:
+        addr_name = cleanse_names(addr.find("./content/name/content").text)
+
+        data["network_objects"][addr_name] = {}
+        data["network_objects"][addr_name]["type"] = "network"
+        data["network_objects"][addr_name]["network"] = addr.find("./content/address/content").text
+        data["network_objects"][addr_name]["mask"] = ipv4_prefix_to_mask("/" + addr.find("./content/netmask/content").text)
+        data["network_objects"][addr_name]["description"] = addr.find("./content/comment/content").text
+
     src_fqdn = src_network_root.find("./dns_host/content")
 
     for fqdn in src_fqdn:
@@ -133,10 +154,21 @@ def parse(src_config, routing_info=""):
         data["network_objects"][fqdn_name]["description"] = fqdn.find("./content/comment/content").text
         data["network_objects"][fqdn_name]["interface"] = "" # Todo get name from REF addr.find("./content/interface/content").text
 
+    src_fqdngrp = src_network_root.find("./dns_group/content")
+
+    for fqdngrp in src_fqdngrp:
+        fqdngrp_name = cleanse_names(fqdngrp.find("./content/name/content").text)
+
+        data["network_objects"][fqdngrp_name] = {}
+        data["network_objects"][fqdngrp_name]["type"] = "fqdn"
+        data["network_objects"][fqdngrp_name]["fqdn"] = fqdngrp.find("./content/hostname/content").text
+        data["network_objects"][fqdngrp_name]["description"] = fqdngrp.find("./content/comment/content").text
+        data["network_objects"][fqdngrp_name]["interface"] = ""  # Todo get name from REF addr.find("./content/interface/content").text
+
     # Parse IPv6 network objects
 
     logger.info(__name__ + ": parse IPv6 network objects - not yet supported")
-
+    
     """
     Parse IPv6 network objects
     """
@@ -144,6 +176,30 @@ def parse(src_config, routing_info=""):
     # Parse IPv4 network groups
 
     logger.info(__name__ + ": parse IPv4 network groups - work in progress")
+
+    src_group = src_network_root.find("./group/content")
+
+    for group in src_group:
+        group_name = cleanse_names(group.find("./content/name/content").text)
+        logger.debug(__name__ + ": parsing group: " + group_name)
+        comment = group.find("./content/comment/content").text
+
+        members = []
+        for member in group.findall("./content/members/content"):
+            member_ref = member.text
+            logger.debug(__name__ + ": parsing group: " + group_name + " -> member ref:" + member_ref)
+            # Find the referenced object and get its name
+            ref_object = src_network_root.find(f".//{member_ref}[@object='1']")
+            if ref_object is not None:
+                member_name = cleanse_names(ref_object.find("./content/name/content").text)
+                logger.debug(__name__ + ": parsing group: " + group_name + " -> member ref:" + member_ref + " -> member name:" + member_name)
+                members.append(member_name)
+
+        data["network_groups"][group_name] = {
+            "type": "group",
+            "members": members,
+            "description": comment,
+        }
 
     # Parse IPv6 network groups
 
@@ -259,7 +315,29 @@ def parse(src_config, routing_info=""):
 
     logger.info(__name__ + ": parse service groups - work in progress")
 
-    # src_servicegroup_root = src_config_xml.find("./objects/service/content/group/content")
+    src_svcgroup = src_service_root.find("./group/content")
+
+    for group in src_svcgroup:
+        group_name = cleanse_names(group.find("./content/name/content").text)
+        logger.debug(__name__ + ": parsing service group: " + group_name)
+        comment = group.find("./content/comment/content").text
+
+        members = []
+        for member in group.findall("./content/members/content"):
+            member_ref = member.text
+            logger.debug(__name__ + ": parsing service group: " + group_name + " -> member ref:" + member_ref)
+            # Find the referenced object and get its name
+            ref_object = src_service_root.find(f".//{member_ref}[@object='1']")
+            if ref_object is not None:
+                member_name = cleanse_names(ref_object.find("./content/name/content").text)
+                logger.debug(__name__ + ": parsing service group: " + group_name + " -> member ref:" + member_ref + " -> member name:" + member_name)
+                members.append(member_name)
+
+        data["service_groups"][group_name] = {
+            "type": "group",
+            "members": members,
+            "description": comment,
+        }
 
     # Parse firewall policies
 
